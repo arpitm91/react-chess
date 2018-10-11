@@ -3,6 +3,12 @@ body {
   margin: 20px;
 }
 
+#root {
+  width: 400px;
+  min-width: 400px;
+  max-width: 400px;
+}
+
 ol, ul {
   padding-left: 30px;
 }
