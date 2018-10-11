@@ -53,6 +53,16 @@ ol, ul {
 .valid-move {
   background: repeating-radial-gradient(
     circle,
+    #465298,
+    #465298 5px,
+    #606dbc 24px,
+    #606dbc 240px
+  );
+}
+
+.valid-move.black-square {
+  background: repeating-radial-gradient(
+    circle,
     #606dbc,
     #606dbc 5px,
     #465298 24px,
@@ -60,13 +70,23 @@ ol, ul {
   );
 }
 
-.valid-move.black-square {
+.capture-cell {
   background: repeating-radial-gradient(
     circle,
-    #465298,
-    #465298 5px,
-    #606dbc 24px,
-    #606dbc 240px
+    #f44,
+    #f44 5px,
+    #800 24px,
+    #800 240px
+  );
+}
+
+.capture-cell.black-square {
+  background: repeating-radial-gradient(
+    circle,
+    #f44,
+    #f44 5px,
+    #800 24px,
+    #800 240px
   );
 }
 

@@ -15,6 +15,8 @@ class Square extends React.Component {
       className += " selected";
     if(this.props.isValidMoveCell)
       className += " valid-move";
+    if(this.props.isCapturedCell)
+      className += " capture-cell";
     return (
       <button className={className} onClick={this.props.onClick}>
         {text}
@@ -38,6 +40,16 @@ class ChessGame extends React.Component {
         [9814, 9816, 9815, 9813, 9812, 9815, 9816, 9814]
       ],
       validMoveCells: [
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false]
+      ],
+      captureMoveCells: [
         [false, false, false, false, false, false, false, false],
         [false, false, false, false, false, false, false, false],
         [false, false, false, false, false, false, false, false],
@@ -90,34 +102,83 @@ class ChessGame extends React.Component {
       [false, false, false, false, false, false, false, false],
       [false, false, false, false, false, false, false, false]
     ]
+    let captureMoveCells = [
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false],
+      [false, false, false, false, false, false, false, false]
+    ]
     let piece_selected = this.state.layout[i][j];
 
     // king
     if(piece_selected === 9812 || piece_selected === 9818 ){
       
-      if(this.isFilled(i+1,j) !== "stop"){
+      let result = this.isFilled(i+1,j)
+      if(result !== "stop"){
         validMoveCells[i+1][j] = true;
       }
-      if(this.isFilled(i,j+1) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i+1][j] = true;
+      }
+
+      result = this.isFilled(i,j+1)
+      if(result !== "stop"){
         validMoveCells[i][j+1] = true;
       }
-      if(this.isFilled(i-1,j) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i][j+1] = true;
+      }
+
+      result = this.isFilled(i-1,j)
+      if(result !== "stop"){
         validMoveCells[i-1][j] = true;
       }
-      if(this.isFilled(i,j-1) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i-1][j] = true;
+      }
+
+      result = this.isFilled(i,j-1)
+      if(result !== "stop"){
         validMoveCells[i][j-1] = true;
       }
-      if(this.isFilled(i+1,j+1) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i][j-1] = true;
+      }
+
+      result = this.isFilled(i+1,j+1)
+      if(result !== "stop"){
         validMoveCells[i+1][j+1] = true;
       }
-      if(this.isFilled(i+1,j-1) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i+1][j+1] = true;
+      }
+
+      result = this.isFilled(i+1,j-1)
+      if(result !== "stop"){
         validMoveCells[i+1][j-1] = true;
       }
-      if(this.isFilled(i-1,j+1) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i+1][j-1] = true;
+      }
+
+      result = this.isFilled(i-1,j+1)
+      if(result !== "stop"){
         validMoveCells[i-1][j+1] = true;
       }
-      if(this.isFilled(i-1,j-1) !== "stop"){
+      if(result === "capture"){
+        captureMoveCells[i-1][j+1] = true;
+      }
+
+      result = this.isFilled(i-1,j-1)
+      if(result !== "stop"){
         validMoveCells[i-1][j-1] = true;
+      }
+      if(result === "capture"){
+        captureMoveCells[i-1][j-1] = true;
       }
     }
 
@@ -132,6 +193,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i+add][j] = true;
+        captureMoveCells[i+add][j] = true;
       }
 
       add = 1;
@@ -143,6 +205,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i-add][j] = true;
+        captureMoveCells[i-add][j] = true;
       }
 
       add = 1;
@@ -154,6 +217,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i][j+add] = true;
+        captureMoveCells[i][j+add] = true;
       }
 
       add = 1;
@@ -165,6 +229,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i][j-add] = true;
+        captureMoveCells[i][j-add] = true;
       }
 
       add = 1;
@@ -176,6 +241,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i+add][j+add] = true;
+        captureMoveCells[i+add][j+add] = true;
       }
 
       add = 1;
@@ -187,6 +253,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i-add][j+add] = true;
+        captureMoveCells[i-add][j+add] = true;
       }
 
       add = 1;
@@ -198,6 +265,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i-add][j-add] = true;
+        captureMoveCells[i-add][j-add] = true;
       }
 
       add = 1;
@@ -209,6 +277,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i+add][j-add] = true;
+        captureMoveCells[i+add][j-add] = true;
       }
     }
 
@@ -223,6 +292,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i+add][j] = true;
+        captureMoveCells[i+add][j] = true;
       }
 
       add = 1;
@@ -234,6 +304,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i-add][j] = true;
+        captureMoveCells[i-add][j] = true;
       }
 
       add = 1;
@@ -245,6 +316,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i][j+add] = true;
+        captureMoveCells[i][j+add] = true;
       }
 
       add = 1;
@@ -256,6 +328,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i][j-add] = true;
+        captureMoveCells[i][j-add] = true;
       }
     }
 
@@ -270,6 +343,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i+add][j+add] = true;
+        captureMoveCells[i+add][j+add] = true;
       }
 
       add = 1;
@@ -281,6 +355,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i-add][j+add] = true;
+        captureMoveCells[i-add][j+add] = true;
       }
 
       add = 1;
@@ -292,6 +367,7 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i-add][j-add] = true;
+        captureMoveCells[i-add][j-add] = true;
       }
 
       add = 1;
@@ -303,36 +379,76 @@ class ChessGame extends React.Component {
       }
       if(result === "capture"){
         validMoveCells[i+add][j-add] = true;
+        captureMoveCells[i+add][j-add] = true;
       }
     }
 
     // knight
     else if(piece_selected === 9816 || piece_selected === 9822 ){
-      if(this.isFilled(i+2,j+1)!=="stop"){
+      let result = this.isFilled(i+2,j+1);
+      if(result!=="stop"){
         validMoveCells[i+2][j+1] = true;
+        if(result==="capture"){
+          captureMoveCells[i+2][j+1] = true;
+        }
       }
-      if(this.isFilled(i-2,j+1)!=="stop"){
+
+      result = this.isFilled(i-2,j+1);
+      if(result!=="stop"){
         validMoveCells[i-2][j+1] = true;
+        if(result==="capture"){
+          captureMoveCells[i-2][j+1] = true;
+        }
       }
-      if(this.isFilled(i+2,j-1)!=="stop"){
+
+      result = this.isFilled(i+2,j-1);
+      if(result!=="stop"){
         validMoveCells[i+2][j-1] = true;
+        if(result==="capture"){
+          captureMoveCells[i+2][j-1] = true;
+        }
       }
-      if(this.isFilled(i-2,j-1)!=="stop"){
+
+      result = this.isFilled(i-2,j-1);
+      if(result!=="stop"){
         validMoveCells[i-2][j-1] = true;
+        if(result==="capture"){
+          captureMoveCells[i-2][j-1] = true;
+        }
       }
 
 
-      if(this.isFilled(i+1,j+2)!=="stop"){
+
+      result = this.isFilled(i+1,j+2);
+      if(result!=="stop"){
         validMoveCells[i+1][j+2] = true;
+        if(result==="capture"){
+          captureMoveCells[i+1][j+2] = true;
+        }
       }
-      if(this.isFilled(i-1,j+2)!=="stop"){
+
+      result = this.isFilled(i-1,j+2);
+      if(result!=="stop"){
         validMoveCells[i-1][j+2] = true;
+        if(result==="capture"){
+          captureMoveCells[i-1][j+2] = true;
+        }
       }
-      if(this.isFilled(i+1,j-2)!=="stop"){
+
+      result = this.isFilled(i+1,j-2);
+      if(result!=="stop"){
         validMoveCells[i+1][j-2] = true;
+        if(result==="capture"){
+          captureMoveCells[i+1][j-2] = true;
+        }
       }
-      if(this.isFilled(i-1,j-2)!=="stop"){
+
+      result = this.isFilled(i-1,j-2);
+      if(result!=="stop"){
         validMoveCells[i-1][j-2] = true;
+        if(result==="capture"){
+          captureMoveCells[i-1][j-2] = true;
+        }
       }
     }
 
@@ -346,9 +462,11 @@ class ChessGame extends React.Component {
       }
       if(this.isFilled(i-1,j+1) === "capture" ){
         validMoveCells[i-1][j+1] = true;
+        captureMoveCells[i-1][j+1] = true;
       }
       if(this.isFilled(i-1,j-1) === "capture" ){
         validMoveCells[i-1][j-1] = true;
+        captureMoveCells[i-1][j-1] = true;
       }
     }
 
@@ -362,13 +480,15 @@ class ChessGame extends React.Component {
       }
       if(this.isFilled(i+1,j+1) === "capture" ){
         validMoveCells[i+1][j+1] = true;
+        captureMoveCells[i+1][j+1] = true;
       }
       if(this.isFilled(i+1,j-1) === "capture" ){
         validMoveCells[i+1][j-1] = true;
+        captureMoveCells[i+1][j-1] = true;
       }
     }
 
-    return validMoveCells;
+    return [validMoveCells,captureMoveCells];
   }
   handleClick(i, j) {
     if(this.state.layout[i][j] === 32 && this.state.validMoveCells[i][j]===false){
@@ -388,12 +508,23 @@ class ChessGame extends React.Component {
           [false, false, false, false, false, false, false, false],
           [false, false, false, false, false, false, false, false]
         ]
+        let captureMoveCells = [
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false],
+          [false, false, false, false, false, false, false, false]
+        ]
 
         let whitesMove = this.state.whitesMove ? false : true;
         
         this.setState({
           layout : layout,
           validMoveCells : validMoveCells,
+          captureMoveCells : captureMoveCells,
           whitesMove : whitesMove,
           selectedI : null,
           selectedJ : null
@@ -402,24 +533,26 @@ class ChessGame extends React.Component {
     }
     if(this.state.whitesMove){
       if(this.state.layout[i][j] < 9818){
+        let result = this.findValidMovesCells(i,j);
+        let validMoveCells = result[0];
+        let captureMoveCells = result[1];
         this.setState({
           selectedI : i,
           selectedJ : j,
-        });
-
-        this.setState({
-          validMoveCells : this.findValidMovesCells(i,j)
+          validMoveCells : validMoveCells,
+          captureMoveCells : captureMoveCells,
         });
       }
     } else {
       if(this.state.layout[i][j] >= 9818){
+        let result = this.findValidMovesCells(i,j);
+        let validMoveCells = result[0];
+        let captureMoveCells = result[1];
         this.setState({
           selectedI : i,
           selectedJ : j,
-        });
-
-        this.setState({
-          validMoveCells : this.findValidMovesCells(i,j)
+          validMoveCells : validMoveCells,
+          captureMoveCells : captureMoveCells,
         });
       }
     }
@@ -429,6 +562,7 @@ class ChessGame extends React.Component {
       <ChessBoard
         layout={this.state.layout}
         validMoveCells={this.state.validMoveCells}
+        captureMoveCells={this.state.captureMoveCells}
         handleClick={(i, j) => this.handleClick(i, j)}
         selectedI={this.state.selectedI}
         selectedJ={this.state.selectedJ}
@@ -449,6 +583,7 @@ class ChessBoard extends React.Component {
         selected={selected}
         isBlackSquare={isBlackSquare}
         isValidMoveCell={this.props.validMoveCells[i][j]}
+        isCapturedCell={this.props.captureMoveCells[i][j]}
       />
     );
   }
