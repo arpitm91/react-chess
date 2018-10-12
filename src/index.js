@@ -17,6 +17,10 @@ class Square extends React.Component {
       className += " valid-move";
     if(this.props.isCapturedCell)
       className += " capture-cell";
+    if(this.props.lastMoveStart)
+      className += " lastMoveStart";
+    if(this.props.lastMoveEnd)
+      className += " lastMoveEnd";
     return (
       <button className={className} onClick={this.props.onClick}>
         {text}
@@ -62,6 +66,10 @@ class ChessGame extends React.Component {
       whitesMove: true,
       selectedI: null,
       selectedJ: null,
+      lastMoveStartI: null,
+      lastMoveStartJ: null,
+      lastMoveEndI: null,
+      lastMoveEndJ: null,
     };
   }
   // i_check, j_check is the cell to be checked.
@@ -520,6 +528,8 @@ class ChessGame extends React.Component {
         ]
 
         let whitesMove = this.state.whitesMove ? false : true;
+        let lastMoveStartI = this.state.selectedI;
+        let lastMoveStartJ = this.state.selectedJ;
         
         this.setState({
           layout : layout,
@@ -527,7 +537,11 @@ class ChessGame extends React.Component {
           captureMoveCells : captureMoveCells,
           whitesMove : whitesMove,
           selectedI : null,
-          selectedJ : null
+          selectedJ : null,
+          lastMoveEndI:i,
+          lastMoveEndJ:j,
+          lastMoveStartI:lastMoveStartI,
+          lastMoveStartJ:lastMoveStartJ,
         })
         return;
     }
@@ -558,15 +572,44 @@ class ChessGame extends React.Component {
     }
   }
   render() {
+    const turn = this.state.whitesMove ? "White's Turn" : "Black's Turn";
     return (
-      <ChessBoard
-        layout={this.state.layout}
-        validMoveCells={this.state.validMoveCells}
-        captureMoveCells={this.state.captureMoveCells}
-        handleClick={(i, j) => this.handleClick(i, j)}
-        selectedI={this.state.selectedI}
-        selectedJ={this.state.selectedJ}
-      />
+      <div>
+        <ChessBoard
+          layout={this.state.layout}
+          validMoveCells={this.state.validMoveCells}
+          captureMoveCells={this.state.captureMoveCells}
+          handleClick={(i, j) => this.handleClick(i, j)}
+          selectedI={this.state.selectedI}
+          selectedJ={this.state.selectedJ}
+          lastMoveStartI={this.state.lastMoveStartI}
+          lastMoveStartJ={this.state.lastMoveStartJ}
+          lastMoveEndI={this.state.lastMoveEndI}
+          lastMoveEndJ={this.state.lastMoveEndJ}
+        />
+        <div className="center">
+          <h1>{turn}</h1>
+          {/* <button>New Game</button> */}
+        </div>
+      </div>
+    );
+  }
+}
+
+class Numbering extends React.Component {
+  render() {
+    return (
+      <tr>
+        <td/>
+        <td className="cellNumber">a</td>
+        <td className="cellNumber">b</td>
+        <td className="cellNumber">c</td>
+        <td className="cellNumber">d</td>
+        <td className="cellNumber">e</td>
+        <td className="cellNumber">f</td>
+        <td className="cellNumber">g</td>
+        <td className="cellNumber">h</td>
+      </tr>
     );
   }
 }
@@ -575,16 +618,22 @@ class ChessBoard extends React.Component {
   renderSquare(i, j) {
     const isBlackSquare = (i+j)%2 === 1 ? true : false;
     const selected = (i===this.props.selectedI && j===this.props.selectedJ) ? true : false;
+    const lastMoveStart = (i===this.props.lastMoveStartI && j===this.props.lastMoveStartJ) ? true : false;
+    const lastMoveEnd = (i===this.props.lastMoveEndI && j===this.props.lastMoveEndJ) ? true : false;
     return (
-      <Square
-        key={i*8+j}
-        value={this.props.layout[i][j]}
-        onClick={() => this.props.handleClick(i, j)}
-        selected={selected}
-        isBlackSquare={isBlackSquare}
-        isValidMoveCell={this.props.validMoveCells[i][j]}
-        isCapturedCell={this.props.captureMoveCells[i][j]}
-      />
+      <td>
+        <Square
+          key={i*8+j}
+          value={this.props.layout[i][j]}
+          onClick={() => this.props.handleClick(i, j)}
+          selected={selected}
+          isBlackSquare={isBlackSquare}
+          lastMoveStart={lastMoveStart}
+          lastMoveEnd={lastMoveEnd}
+          isValidMoveCell={this.props.validMoveCells[i][j]}
+          isCapturedCell={this.props.captureMoveCells[i][j]}
+        />
+      </td>
     );
   }
   getRow(i) {
@@ -593,9 +642,11 @@ class ChessBoard extends React.Component {
         cells.push(this.renderSquare(i, j))
     }
     return (
-      <div className="board-row" key={i}>
+      <tr key={i}>
+        <td className="cellNumber">{8-i}</td>
         {cells}
-      </div>
+        <td className="cellNumber">{8-i}</td>
+      </tr>
     );
   }
   render() {
@@ -604,9 +655,13 @@ class ChessBoard extends React.Component {
         rows.push(this.getRow(i))
     }
     return (
-      <div>
-        {rows}
-      </div>
+      <table className="boardTable">
+        <tbody>
+          <Numbering/>
+          {rows}
+          <Numbering/>
+        </tbody>
+      </table>
     );
   }
 }
