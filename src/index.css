@@ -121,3 +121,19 @@ ol, ul {
 .center {
   text-align: center;
 }
+
+.history {
+  margin: 0 auto;
+}
+
+.history .sl-no{
+  width:2em;
+}
+
+.history td {
+  width:7em;
+}
+
+.history button{
+  width:100%;
+}
