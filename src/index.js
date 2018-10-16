@@ -110,26 +110,35 @@ class Turn extends React.Component {
 class History extends React.Component {
   render() {
     let rows = []
-    for(let i = 0; i< this.props.history.length; i++){
+    for(let i = 0; i< this.props.history.length; i+=2){
       let cells = [
-        <td className="sl-no">
+        <td className="sl-no" key={i+"number"}>
           {(i/2+1) + "."}
         </td>,
-        <td>
-          <button>
+        <td key={i}
+          onMouseEnter={() => this.props.historyHover(i)}
+          onMouseLeave={() => this.props.historyHover(null)}
+        >
+          <button 
+            onClick={() => this.props.historyClick(i)}
+          >
             {this.props.history[i]}
           </button>
         </td>
       ]
       if (i+1<this.props.history.length){
         cells.push(
-          <td>
-            <button>
+          <td key={i+1}
+            onMouseEnter={() => this.props.historyHover(i+1)}
+            onMouseLeave={() => this.props.historyHover(null)}
+          >
+            <button 
+              onClick={() => this.props.historyClick(i+1)}
+            >
               {this.props.history[i+1]}
             </button>
           </td>
         )
-        i++;
       }
       rows.push(
         <tr key={i}>
@@ -143,7 +152,13 @@ class History extends React.Component {
           <thead>
             <tr>
               <th colSpan="3">
-                <button>New Game</button>
+                <button
+                  onClick={() => this.props.historyClick(-1)}
+                  onMouseEnter={() => this.props.historyHover(-1)}
+                  onMouseLeave={() => this.props.historyHover(null)}
+                >
+                  New Game
+                </button>
               </th>
             </tr>
           </thead>
@@ -160,7 +175,7 @@ class ChessGame extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      layout: [
+      layout: [[
         [9814, 9816, 9815, 9813, 9812, 9815, 9816, 9814],
         [9817, 9817, 9817, 9817, 9817, 9817, 9817, 9817],
         [ 32 ,  32 ,  32 ,  32 ,  32 ,  32 ,  32 ,  32 ],
@@ -169,7 +184,7 @@ class ChessGame extends React.Component {
         [ 32 ,  32 ,  32 ,  32 ,  32 ,  32 ,  32 ,  32 ],
         [9823, 9823, 9823, 9823, 9823, 9823, 9823, 9823],
         [9820, 9822, 9821, 9819, 9818, 9821, 9822, 9820]
-      ],
+      ]],
       validMoveCells: [
         [false, false, false, false, false, false, false, false],
         [false, false, false, false, false, false, false, false],
@@ -193,13 +208,14 @@ class ChessGame extends React.Component {
       whitesMove: true,
       selectedI: null,
       selectedJ: null,
-      enPassantI: null,
-      enPassantJ: null,
-      lastMoveStartI: null,
-      lastMoveStartJ: null,
-      lastMoveEndI: null,
-      lastMoveEndJ: null,
+      enPassantI: [null],
+      enPassantJ: [null],
+      lastMoveStartI: [null],
+      lastMoveStartJ: [null],
+      lastMoveEndI: [null],
+      lastMoveEndJ: [null],
       history:[],
+      currentView:0,
     };
   }
   // i_check, j_check is the cell to be checked.
@@ -207,10 +223,11 @@ class ChessGame extends React.Component {
   //        "capture" if occupied by opponent,
   //        "stop" if occupied by self of is off board.
   isFilled(i_check, j_check){
+    let currentView = this.state.layout.length-1;
     if(i_check>=8 || j_check>=8 || i_check<0 || j_check<0){
       return "stop";
     }
-    let square_value = this.state.layout[i_check][j_check];
+    let square_value = this.state.layout[currentView][i_check][j_check];
     if(square_value === 32){
       return "empty";
     }
@@ -230,6 +247,7 @@ class ChessGame extends React.Component {
 
   }
   findValidMovesCells(i,j) {
+    let currentView = this.state.layout.length-1;
     let validMoveCells = [
       [false, false, false, false, false, false, false, false],
       [false, false, false, false, false, false, false, false],
@@ -250,7 +268,7 @@ class ChessGame extends React.Component {
       [false, false, false, false, false, false, false, false],
       [false, false, false, false, false, false, false, false]
     ]
-    let piece_selected = this.state.layout[i][j];
+    let piece_selected = this.state.layout[currentView][i][j];
 
     // king
     if(piece_selected === 9812 || piece_selected === 9818 ){
@@ -606,11 +624,11 @@ class ChessGame extends React.Component {
         validMoveCells[i+1][j-1] = true;
         captureMoveCells[i+1][j-1] = true;
       }
-      if(this.state.enPassantI===i+1 && this.state.enPassantJ===j+1){
+      if(this.state.enPassantI[currentView]===i+1 && this.state.enPassantJ[currentView]===j+1){
         validMoveCells[i+1][j+1] = true;
         captureMoveCells[i+1][j+1] = true;
       }
-      if(this.state.enPassantI===i+1 && this.state.enPassantJ===j-1){
+      if(this.state.enPassantI[currentView]===i+1 && this.state.enPassantJ[currentView]===j-1){
         validMoveCells[i+1][j-1] = true;
         captureMoveCells[i+1][j-1] = true;
       }
@@ -632,27 +650,37 @@ class ChessGame extends React.Component {
         validMoveCells[i-1][j-1] = true;
         captureMoveCells[i-1][j-1] = true;
       }
+      if(this.state.enPassantI[currentView]===i-1 && this.state.enPassantJ[currentView]===j+1){
+        validMoveCells[i-1][j+1] = true;
+        captureMoveCells[i-1][j+1] = true;
+      }
+      if(this.state.enPassantI[currentView]===i-1 && this.state.enPassantJ[currentView]===j-1){
+        validMoveCells[i-1][j-1] = true;
+        captureMoveCells[i-1][j-1] = true;
+      }
     }
 
     return [validMoveCells,captureMoveCells];
   }
   handleClick(i, j) {
-    if(this.state.layout[i][j] === 32 && this.state.validMoveCells[i][j]===false){
+    let currentView = this.state.layout.length-1;
+    if(this.state.layout[currentView][i][j] === 32 && this.state.validMoveCells[i][j]===false){
       return;
     }
     if(this.state.validMoveCells[i][j]===true && this.state.selectedI!==null && this.state.selectedJ!==null){
-      let layout = this.state.layout.slice();
-      let piece_selected = layout[this.state.selectedI][this.state.selectedJ];
+      let layout = JSON.parse(JSON.stringify(this.state.layout))
+      let currentLayout = JSON.parse(JSON.stringify(layout[currentView]))
+      let piece_selected = currentLayout[this.state.selectedI][this.state.selectedJ];
 
       const files = ["a","b","c","d","e","f","g","h"]
       let text = (piece_selected === 9823 || piece_selected === 9817)
         ? ""
         : String.fromCharCode(piece_selected);
-      if(layout[i][j] !== 32 || 
+      if(currentLayout[i][j] !== 32 || 
           (//for en passant
             (piece_selected === 9823 || piece_selected === 9817) 
             && 
-            (this.state.enPassantI===i && this.state.enPassantJ===j)
+            (this.state.enPassantI[currentView]===i && this.state.enPassantJ[currentView]===j)
           )) {
         if (piece_selected === 9823 || piece_selected === 9817) {
           text += files[this.state.selectedJ]
@@ -660,19 +688,19 @@ class ChessGame extends React.Component {
         text += "x";
       }
       text+= files[j] + (i+1);
-      if((piece_selected === 9823 || piece_selected === 9817) && (this.state.enPassantI===i && this.state.enPassantJ===j)) {
+      if((piece_selected === 9823 || piece_selected === 9817) && (this.state.enPassantI[currentView]===i && this.state.enPassantJ[currentView]===j)) {
         text += "e.p."
       }
       let history = this.state.history.slice();
       history.push(text);
 
-      layout[i][j] = piece_selected;
-      layout[this.state.selectedI][this.state.selectedJ] = 32;
+      currentLayout[i][j] = piece_selected;
+      currentLayout[this.state.selectedI][this.state.selectedJ] = 32;
       //for en passant
-      if(piece_selected === 9823 && (this.state.enPassantI===i && this.state.enPassantJ===j)){
-        layout[i+1][j] = 32;
-      } else if (piece_selected === 9817 && (this.state.enPassantI===i && this.state.enPassantJ===j)){
-        layout[i-1][j] = 32;
+      if(piece_selected === 9823 && (this.state.enPassantI[currentView]===i && this.state.enPassantJ[currentView]===j)){
+        currentLayout[i+1][j] = 32;
+      } else if (piece_selected === 9817 && (this.state.enPassantI[currentView]===i && this.state.enPassantJ[currentView]===j)){
+        currentLayout[i-1][j] = 32;
       } 
       let validMoveCells = [
         [false, false, false, false, false, false, false, false],
@@ -696,19 +724,33 @@ class ChessGame extends React.Component {
       ]
 
       let whitesMove = this.state.whitesMove ? false : true;
-      let lastMoveStartI = this.state.selectedI;
-      let lastMoveStartJ = this.state.selectedJ;
+      let lastMoveStartI = this.state.lastMoveStartI.slice();
+      lastMoveStartI.push(this.state.selectedI);
+      let lastMoveStartJ = this.state.lastMoveStartJ.slice();
+      lastMoveStartJ.push(this.state.selectedJ);
+
+      let lastMoveEndI = this.state.lastMoveEndI.slice();
+      lastMoveEndI.push(i);
+      let lastMoveEndJ = this.state.lastMoveEndJ.slice();
+      lastMoveEndJ.push(j);
 
       //en passant
-      let enPassantI = null;
-      let enPassantJ = null;
+      let enPassantI = this.state.enPassantI.slice();
+      enPassantI.push(null);
+      let enPassantJ = this.state.enPassantJ.slice();
+      enPassantJ.push(null);
+
       if (piece_selected === 9823 && this.state.selectedI - i === 2) {
-        enPassantI = i + 1;
-        enPassantJ = j;
+        enPassantI[currentView+1] = i + 1;
+        enPassantJ[currentView+1] = j;
       } else if(piece_selected === 9817 && i - this.state.selectedI === 2) {
-        enPassantI = i - 1;
-        enPassantJ = j;
+        enPassantI[currentView+1] = i - 1;
+        enPassantJ[currentView+1] = j;
       }
+
+      layout.push(currentLayout);
+
+      currentView = currentView+1;
       
       this.setState({
         layout : layout,
@@ -717,18 +759,19 @@ class ChessGame extends React.Component {
         whitesMove : whitesMove,
         selectedI : null,
         selectedJ : null,
-        lastMoveEndI:i,
-        lastMoveEndJ:j,
+        lastMoveEndI:lastMoveEndI,
+        lastMoveEndJ:lastMoveEndJ,
         lastMoveStartI:lastMoveStartI,
         lastMoveStartJ:lastMoveStartJ,
         enPassantI:enPassantI,
         enPassantJ:enPassantJ,
         history:history,
+        currentView:currentView,
       })
       return;
     }
     if(this.state.whitesMove){
-      if(this.state.layout[i][j] < 9818){
+      if(this.state.layout[currentView][i][j] < 9818){
         let result = this.findValidMovesCells(i,j);
         let validMoveCells = result[0];
         let captureMoveCells = result[1];
@@ -740,7 +783,7 @@ class ChessGame extends React.Component {
         });
       }
     } else {
-      if(this.state.layout[i][j] >= 9818){
+      if(this.state.layout[currentView][i][j] >= 9818){
         let result = this.findValidMovesCells(i,j);
         let validMoveCells = result[0];
         let captureMoveCells = result[1];
@@ -753,24 +796,63 @@ class ChessGame extends React.Component {
       }
     }
   }
+  historyHover(turn) {
+    let currentView = turn === null 
+      ? this.state.layout.length-1 
+      : turn+1;
+    // alert(currentView + " " + turn)
+    this.setState({
+      currentView:currentView,
+      validMoveCells: [
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false]
+      ],
+      captureMoveCells: [
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, false, false, false, false]
+      ],
+      selectedI: null,
+      selectedJ: null,
+    })
+  }
+  historyClick(turn) {
+  }
   render() {
+    let currentView = this.state.currentView;
+    console.log("rendering");
     return (
       <div>
         <ChessBoard
-          layout={this.state.layout}
+          layout={this.state.layout[currentView]}
           validMoveCells={this.state.validMoveCells}
           captureMoveCells={this.state.captureMoveCells}
           handleClick={(i, j) => this.handleClick(i, j)}
           selectedI={this.state.selectedI}
           selectedJ={this.state.selectedJ}
-          lastMoveStartI={this.state.lastMoveStartI}
-          lastMoveStartJ={this.state.lastMoveStartJ}
-          lastMoveEndI={this.state.lastMoveEndI}
-          lastMoveEndJ={this.state.lastMoveEndJ}
+          lastMoveStartI={this.state.lastMoveStartI[currentView]}
+          lastMoveStartJ={this.state.lastMoveStartJ[currentView]}
+          lastMoveEndI={this.state.lastMoveEndI[currentView]}
+          lastMoveEndJ={this.state.lastMoveEndJ[currentView]}
         />
         <div className="center">
           <Turn whitesMove={this.state.whitesMove}/>
-          <History history={this.state.history}/>
+          <History 
+            history={this.state.history}
+            historyHover={(turn) => this.historyHover(turn)}
+            historyClick={(turn) => this.historyClick(turn)}
+          />
         </div>
       </div>
     );
